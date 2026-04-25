@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flex送信アプリ</title>
+    <style>
+        body { text-align: center; padding-top: 100px; font-family: sans-serif; background-color: #f0f2f5; }
+        .btn { padding: 20px 40px; font-size: 20px; font-weight: bold; cursor: pointer; background: #ccc; color: white; border: none; border-radius: 50px; transition: 0.3s; }
+        #status { margin-top: 20px; color: #666; }
+    </style>
+</head>
+<body>
+    <h2>評価一覧を自分のIDで送る</h2>
+    <button class="btn" id="sendBtn" onclick="sendMyFlex()" disabled>読み込み中...</button>
+    <p id="status">LINEを呼び出しています...</p>
+
+    <!-- SDKの読み込みが終わったら直後に初期化関数を呼ぶ設定にしました -->
+    <script src="https://line-scdn.net"></script>
+
+    <script>
+        const MY_LIFF_ID = '2009892193-VMOAgcGM';
+
+        // ページ読み込みとSDK読み込みの両方が終わるのを待つ
+        async function main() {
+            try {
+                if (typeof liff === 'undefined') {
+                    document.getElementById('status').innerText = '再読み込みしてください';
+                    return;
+                }
+
+                await liff.init({ liffId: MY_LIFF_ID });
+
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                } else {
+                    const btn = document.getElementById('sendBtn');
+                    btn.disabled = false;
+                    btn.style.background = '#06C755';
+                    btn.innerText = '送信する！';
+                    document.getElementById('status').innerText = '準備完了！ボタンを押してね';
+                }
+            } catch (error) {
+                document.getElementById('status').innerText = 'エラー: ' + error.message;
+            }
+        }
+
+        // 実行！
+        main();
+
+        async function sendMyFlex() {
+            try {
+                await liff.sendMessages([{
+                    "type": "flex",
+                    "altText": "プログラミング言語 評価一覧",
+                    "contents": {
+                        "type": "bubble",
+                        "body": {
+                            "type": "box", "layout": "vertical", "contents": [
+                                { "type": "text", "text": "プログラミング言語 評価一覧", "weight": "bold", "size": "xl" },
+                                { "type": "separator", "margin": "lg" },
+                                {
+                                    "type": "box", "layout": "vertical", "margin": "lg", "spacing": "xl",
+                                    "contents": [
+                                        { "type": "text", "text": "JavaScript", "weight": "bold" },
+                                        { "type": "text", "text": "Python", "weight": "bold", "margin": "md" },
+                                        { "type": "text", "text": "C#", "weight": "bold", "margin": "md" },
+                                        { "type": "text", "text": "Java", "weight": "bold", "margin": "md" }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }]);
+                liff.closeWindow();
+            } catch (error) {
+                alert('送信失敗: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
